@@ -7,7 +7,7 @@ rule ensemble_filter:
         vcf = "DNA_BcBio/vcf_files/{sample}/{sample}-ensemble.vcf.gz"
     output:
         vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.vcf.gz"
-    run:
+    shell:
         "python3 src/filter_by_num_callers.py -v {input.vcf} -d | bgzip > {output.vcf} && "
         "tabix {output.vcf}"
 
@@ -16,16 +16,18 @@ rule intron_filter:
         vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.vcf.gz"
     output:
         vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.vcf.gz"
+    params:
+        vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.vcf"
     shell :
         "python3 src/filter_TSO500_introns.py {input.vcf} &&"
-        "bgzip {input.vcf} && "
-        "tabix {output.gvcf}"
+        "bgzip {params.vcf} && "
+        "tabix {output.vcf}"
 
 rule AD_filter:
     input:
         vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.vcf.gz"
     output:
-        vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.AD20.vcf.gz"
+        vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.AD20.vcf"
     singularity:
         "/projects/wp2/nobackup/Twist_Myeloid/Containers/bcftools-1.9--8.simg"
     shell :
@@ -35,8 +37,8 @@ rule AD_filter:
 rule ffpe_filter:
     input:
         vcf = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.AD20.vcf",
-        bam = "DNA_bam/{sample}-ready.bam",
-        bai = "DNA_bam/{sample}-ready.bam.bai"
+        bam = "DNA_BcBio/bam_files/{sample}-ready.bam",
+        bai = "DNA_BcBio/bam_files/{sample}-ready.bam.bai"
     params:
         vcf_ffpe_temp = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.AD20.ffpe.temp.vcf",
         vcf_ffpe = "Results/DNA/{sample}/vcf/{sample}-ensemble.final.no.introns.AD20.ffpe.tsv"
